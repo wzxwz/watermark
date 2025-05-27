@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片加水印工具 - 在线水印生成器 | 免费图片水印制作</title>
+    <meta name="description" content="免费在线图片加水印工具，支持批量添加水印、Logo、文字水印，简单易用，适合电商、摄影、设计等场景。">
+    <meta name="keywords" content="图片加水印,水印工具,在线水印生成器,图片水印,Logo水印,批量加水印,水印制作,水印软件">
+    <style>
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+            background: url('./static/bg.png') center center/cover no-repeat fixed, linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
+            color: #222;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background-color: rgba(255,255,255,0.82);
+            padding: 32px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            text-align: center;
+            width: 100%;
+            max-width: 1200px;
+            margin: 24px auto;
+            position: relative;
+        }
+        input[type="file"] {
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        button {
+            background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #0056b3 0%, #0096c7 100%);
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .watermark-settings {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .watermark-settings label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .watermark-settings input[type="range"],
+        .watermark-settings input[type="number"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .watermark-settings p {
+            margin: 5px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .faq {
+            margin-top: 32px;
+            text-align: left;
+            background: #f6fafd;
+            border-radius: 8px;
+            padding: 18px 16px;
+            font-size: 1em;
+        }
+        .faq h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .faq h3 {
+            font-size: 1em;
+            margin: 10px 0 4px 0;
+        }
+        .steps {
+            margin: 18px 0 0 0;
+            text-align: left;
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 14px 12px;
+            font-size: 1em;
+        }
+        @media (max-width: 1200px) {
+            .container { max-width: 98vw; }
+        }
+        @media (max-width: 600px) {
+            .container { padding: 12px 2px; }
+            h1 { font-size: 1.5em; }
+        }
+        .language-selector {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            z-index: 100;
+        }
+        .language-selector select {
+            padding: 5px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="language-selector">
+            <select id="languageSelect" onchange="changeLanguage()">
+                <option value="zh" selected>中文</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <h1>图片加水印工具 - 在线水印生成器</h1>
+        <p>本工具支持在线为图片批量添加水印、Logo水印、文字水印，操作简单，永久免费，适合电商、摄影、设计等场景。</p>
+        <div class="steps">
+            <h2>使用说明</h2>
+            <ol>
+                <li>上传需要加水印的图片（支持JPG、PNG、WebP等格式）。</li>
+                <li>上传水印Logo图片（支持透明PNG最佳）。</li>
+                <li>设置水印大小、透明度、旋转角度和间距。</li>
+                <li>点击"一键添加水印"按钮。</li>
+                <li>预览并下载加水印后的图片。</li>
+            </ol>
+        </div>
+        <label for="imageInput">上传需要加水印的图片：</label>
+        <input type="file" id="imageInput" accept="image/*" aria-label="上传图片用于加水印">
+        <label for="watermarkInput">上传水印Logo图片：</label>
+        <input type="file" id="watermarkInput" accept="image/*" aria-label="上传水印Logo">
+        <div class="watermark-settings">
+            <h2>水印设置</h2>
+            <label for="watermarkSize">水印大小 (% 图片宽度):</label>
+            <input type="range" id="watermarkSize" min="5" max="50" value="15" oninput="updateWatermarkSettings()">
+            <p>当前水印大小: <span id="watermarkSizeValue">15</span>%</p>
+            <label for="watermarkOpacity">水印透明度:</label>
+            <input type="range" id="watermarkOpacity" min="0.1" max="1" step="0.05" value="0.3" oninput="updateWatermarkSettings()">
+            <p>当前透明度: <span id="watermarkOpacityValue">0.3</span></p>
+            <label for="watermarkRotation">水印旋转角度 (度):</label>
+            <input type="range" id="watermarkRotation" min="-45" max="45" value="-30" oninput="updateWatermarkSettings()">
+            <p>当前旋转角度: <span id="watermarkRotationValue">-30</span>°</p>
+            <label for="watermarkGap">水印间距 (% 水印宽度):</label>
+            <input type="range" id="watermarkGap" min="50" max="200" value="100" oninput="updateWatermarkSettings()">
+            <p>当前水印间距: <span id="watermarkGapValue">100</span>% (基于水印宽度)</p>
+        </div>
+        <div class="controls">
+            <button onclick="addWatermark()">一键添加水印</button>
+            <button onclick="downloadImage()">下载加水印图片</button>
+        </div>
+        <canvas id="imageCanvas" alt="加水印后的图片预览"></canvas>
+        <section class="faq">
+            <h2>常见问题（FAQ）</h2>
+            <h3>如何在线给图片加水印？</h3>
+            <p>只需上传图片和水印Logo，设置水印参数，点击"一键添加水印"即可完成图片加水印。</p>
+            <h3>支持哪些图片格式？</h3>
+            <p>支持JPG、PNG、WebP等主流图片格式。</p>
+            <h3>图片加水印后会压缩画质吗？</h3>
+            <p>不会，工具采用无损处理，保证图片质量。</p>
+            <h3>可以批量加水印吗？</h3>
+            <p>目前支持单张图片加水印，后续将支持批量加水印功能。</p>
+            <h3>水印工具是否永久免费？</h3>
+            <p>是的，本站图片加水印工具永久免费，无需注册。</p>
+        </section>
+        <footer style="margin-top:32px;font-size:0.9em;color:#888;">
+            <p>© 2024 图片加水印工具 | 在线水印生成器 | <a href="#" style="color:#888;">联系我们</a></p>
+        </footer>
+    </div>
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const watermarkInput = document.getElementById('watermarkInput');
+        const imageCanvas = document.getElementById('imageCanvas');
+        const ctx = imageCanvas.getContext('2d');
+
+        const watermarkSizeControl = document.getElementById('watermarkSize');
+        const watermarkOpacityControl = document.getElementById('watermarkOpacity');
+        const watermarkRotationControl = document.getElementById('watermarkRotation');
+        const watermarkGapControl = document.getElementById('watermarkGap');
+
+        const watermarkSizeValueSpan = document.getElementById('watermarkSizeValue');
+        const watermarkOpacityValueSpan = document.getElementById('watermarkOpacityValue');
+        const watermarkRotationValueSpan = document.getElementById('watermarkRotationValue');
+        const watermarkGapValueSpan = document.getElementById('watermarkGapValue');
+
+        let originalImage = null;
+        let watermarkImage = null;
+
+        // 水印设置的默认值
+        let watermarkSettings = {
+            sizePercent: 15, // 水印大小占原图宽度的百分比
+            opacity: 0.3,    // 水印透明度
+            rotationDeg: -30, // 水印旋转角度（度）
+            gapPercent: 100 // 水印间距占水印宽度的百分比
+        };
+
+        // 更新水印设置显示值
+        function updateWatermarkSettings() {
+            watermarkSettings.sizePercent = parseFloat(watermarkSizeControl.value);
+            watermarkSettings.opacity = parseFloat(watermarkOpacityControl.value);
+            watermarkSettings.rotationDeg = parseFloat(watermarkRotationControl.value);
+            watermarkSettings.gapPercent = parseFloat(watermarkGapControl.value);
+
+            watermarkSizeValueSpan.textContent = watermarkSettings.sizePercent;
+            watermarkOpacityValueSpan.textContent = watermarkSettings.opacity;
+            watermarkRotationValueSpan.textContent = watermarkSettings.rotationDeg;
+            watermarkGapValueSpan.textContent = watermarkSettings.gapPercent;
+
+            // 实时预览（可选，如果图片很大可能会卡顿）
+            if (originalImage && watermarkImage) {
+                drawImageOnCanvas();
+            }
+        }
+
+        // 初始化时更新一次显示
+        updateWatermarkSettings();
+
+        // 当选择图片时，加载图片
+        imageInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    originalImage = new Image();
+                    originalImage.onload = () => {
+                        drawImageOnCanvas();
+                    };
+                    originalImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 当选择水印图片时，加载水印
+        watermarkInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    watermarkImage = new Image();
+                    watermarkImage.onload = () => {
+                        if (originalImage) {
+                            drawImageOnCanvas();
+                        }
+                    };
+                    watermarkImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 在Canvas上绘制图片和多个水印
+        function drawImageOnCanvas() {
+            if (!originalImage) return;
+
+            imageCanvas.width = originalImage.width;
+            imageCanvas.height = originalImage.height;
+            ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height); // 清除上一次绘制
+            ctx.drawImage(originalImage, 0, 0);
+
+            if (watermarkImage) {
+                const { sizePercent, opacity, rotationDeg, gapPercent } = watermarkSettings;
+
+                const rotationRad = rotationDeg * Math.PI / 180; // 将角度转换为弧度
+
+                // 计算水印的实际宽度和高度
+                const watermarkActualWidth = originalImage.width * (sizePercent / 100);
+                const watermarkActualHeight = (watermarkImage.height / watermarkImage.width) * watermarkActualWidth;
+
+                // 计算水印的步进距离（基于水印宽度和间距百分比）
+                const stepX = watermarkActualWidth * (1 + gapPercent / 100) * Math.cos(rotationRad);
+                const stepY = watermarkActualWidth * (1 + gapPercent / 100) * Math.sin(rotationRad);
+
+
+                // 设置水印透明度（模拟模糊感）
+                ctx.globalAlpha = opacity;
+
+                // 遍历Canvas区域，绘制多个倾斜水印
+                for (let y = -imageCanvas.height; y < imageCanvas.height * 2; y += watermarkActualHeight + Math.abs(stepY)) {
+                    for (let x = -imageCanvas.width; x < imageCanvas.width * 2; x += watermarkActualWidth + Math.abs(stepX)) {
+                        ctx.save(); // 保存当前Canvas状态
+
+                        // 移动Canvas原点到水印中心，以便旋转
+                        ctx.translate(x + watermarkActualWidth / 2, y + watermarkActualHeight / 2);
+                        ctx.rotate(rotationRad); // 旋转水印
+                        ctx.drawImage(watermarkImage, -watermarkActualWidth / 2, -watermarkActualHeight / 2, watermarkActualWidth, watermarkActualHeight);
+
+                        ctx.restore(); // 恢复Canvas状态，避免影响下一次绘制
+                    }
+                }
+                ctx.globalAlpha = 1.0; // 恢复不透明度
+            }
+        }
+
+        // 添加水印功能
+        function addWatermark() {
+            if (!originalImage) {
+                alert('请先选择需要加水印的图片！');
+                return;
+            }
+            if (!watermarkImage) {
+                alert('请先选择水印Logo图片！');
+                return;
+            }
+            drawImageOnCanvas(); // 重新绘制以确保水印生效
+            alert('水印已添加到图片上！');
+        }
+
+        // 下载加水印后的图片
+        function downloadImage() {
+            if (!originalImage) {
+                alert('请先选择需要加水印的图片！');
+                return;
+            }
+            const dataURL = imageCanvas.toDataURL('image/png'); // 或者 'image/jpeg'，PNG支持透明度
+            const a = document.createElement('a');
+            a.href = dataURL;
+            a.download = 'watermarked_image.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // 语言切换功能
+        function changeLanguage() {
+            const language = document.getElementById('languageSelect').value;
+            if (language === 'en') {
+                window.location.href = 'index_en.html';
+            }
+        }
+    </script>
+</body>
+</html>

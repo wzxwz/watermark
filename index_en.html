@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Watermark Tool - Online Watermark Generator | Free Watermarking Service</title>
+    <meta name="description" content="Free online tool to add watermarks to images. Support batch processing, logo watermarks, and text watermarks. Perfect for e-commerce, photography, and design.">
+    <meta name="keywords" content="image watermark,watermark tool,online watermark generator,watermarking,logo watermark,batch watermark,watermark software,free watermark">
+    <style>
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: url('./static/bg.png') center center/cover no-repeat fixed, linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
+            color: #222;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background-color: rgba(255,255,255,0.82);
+            padding: 32px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            text-align: center;
+            width: 100%;
+            max-width: 1200px;
+            margin: 24px auto;
+            position: relative;
+        }
+        input[type="file"] {
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        button {
+            background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #0056b3 0%, #0096c7 100%);
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .watermark-settings {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .watermark-settings label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .watermark-settings input[type="range"],
+        .watermark-settings input[type="number"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .watermark-settings p {
+            margin: 5px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .faq {
+            margin-top: 32px;
+            text-align: left;
+            background: #f6fafd;
+            border-radius: 8px;
+            padding: 18px 16px;
+            font-size: 1em;
+        }
+        .faq h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .faq h3 {
+            font-size: 1em;
+            margin: 10px 0 4px 0;
+        }
+        .steps {
+            margin: 18px 0 0 0;
+            text-align: left;
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 14px 12px;
+            font-size: 1em;
+        }
+        .language-selector {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            z-index: 100;
+        }
+        .language-selector select {
+            padding: 5px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        @media (max-width: 1200px) {
+            .container { max-width: 98vw; }
+        }
+        @media (max-width: 600px) {
+            .container { padding: 12px 2px; }
+            h1 { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="language-selector">
+            <select id="languageSelect" onchange="changeLanguage()">
+                <option value="en" selected>English</option>
+                <option value="zh">中文</option>
+            </select>
+        </div>
+        <h1>Image Watermark Tool - Online Watermark Generator</h1>
+        <p>Add watermarks, logos, or text to your images online. Simple, free, and perfect for e-commerce, photography, and design.</p>
+        <div class="steps">
+            <h2>How to Use</h2>
+            <ol>
+                <li>Upload the image you want to watermark (JPG, PNG, WebP formats supported).</li>
+                <li>Upload your watermark or logo image (transparent PNG recommended).</li>
+                <li>Adjust watermark size, opacity, rotation angle, and spacing.</li>
+                <li>Click "Add Watermark" button.</li>
+                <li>Preview and download your watermarked image.</li>
+            </ol>
+        </div>
+        <label for="imageInput">Upload image to watermark:</label>
+        <input type="file" id="imageInput" accept="image/*" aria-label="Upload image for watermarking">
+        <label for="watermarkInput">Upload watermark or logo:</label>
+        <input type="file" id="watermarkInput" accept="image/*" aria-label="Upload watermark logo">
+        <div class="watermark-settings">
+            <h2>Watermark Settings</h2>
+            <label for="watermarkSize">Watermark Size (% of image width):</label>
+            <input type="range" id="watermarkSize" min="5" max="50" value="15" oninput="updateWatermarkSettings()">
+            <p>Current size: <span id="watermarkSizeValue">15</span>%</p>
+            <label for="watermarkOpacity">Watermark Opacity:</label>
+            <input type="range" id="watermarkOpacity" min="0.1" max="1" step="0.05" value="0.3" oninput="updateWatermarkSettings()">
+            <p>Current opacity: <span id="watermarkOpacityValue">0.3</span></p>
+            <label for="watermarkRotation">Watermark Rotation (degrees):</label>
+            <input type="range" id="watermarkRotation" min="-45" max="45" value="-30" oninput="updateWatermarkSettings()">
+            <p>Current rotation: <span id="watermarkRotationValue">-30</span>°</p>
+            <label for="watermarkGap">Watermark Spacing (% of watermark width):</label>
+            <input type="range" id="watermarkGap" min="50" max="200" value="100" oninput="updateWatermarkSettings()">
+            <p>Current spacing: <span id="watermarkGapValue">100</span>% (based on watermark width)</p>
+        </div>
+        <div class="controls">
+            <button onclick="addWatermark()">Add Watermark</button>
+            <button onclick="downloadImage()">Download Watermarked Image</button>
+        </div>
+        <canvas id="imageCanvas" alt="Preview of watermarked image"></canvas>
+        <section class="faq">
+            <h2>Frequently Asked Questions (FAQ)</h2>
+            <h3>How do I add a watermark to my image online?</h3>
+            <p>Simply upload your image and watermark logo, adjust the settings, and click "Add Watermark" to complete the process.</p>
+            <h3>What image formats are supported?</h3>
+            <p>Our tool supports all major formats including JPG, PNG, and WebP.</p>
+            <h3>Will the watermarking process reduce my image quality?</h3>
+            <p>No, we use lossless processing to ensure your image quality is preserved.</p>
+            <h3>Can I batch process multiple images?</h3>
+            <p>Currently, we support single image watermarking. Batch processing will be available in future updates.</p>
+            <h3>Is this watermark tool completely free?</h3>
+            <p>Yes, our image watermarking tool is 100% free with no registration required.</p>
+        </section>
+        <footer style="margin-top:32px;font-size:0.9em;color:#888;">
+            <p>© 2024 Image Watermark Tool | Online Watermark Generator | <a href="#" style="color:#888;">Contact Us</a></p>
+        </footer>
+    </div>
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const watermarkInput = document.getElementById('watermarkInput');
+        const imageCanvas = document.getElementById('imageCanvas');
+        const ctx = imageCanvas.getContext('2d');
+
+        const watermarkSizeControl = document.getElementById('watermarkSize');
+        const watermarkOpacityControl = document.getElementById('watermarkOpacity');
+        const watermarkRotationControl = document.getElementById('watermarkRotation');
+        const watermarkGapControl = document.getElementById('watermarkGap');
+
+        const watermarkSizeValueSpan = document.getElementById('watermarkSizeValue');
+        const watermarkOpacityValueSpan = document.getElementById('watermarkOpacityValue');
+        const watermarkRotationValueSpan = document.getElementById('watermarkRotationValue');
+        const watermarkGapValueSpan = document.getElementById('watermarkGapValue');
+
+        let originalImage = null;
+        let watermarkImage = null;
+
+        // Default watermark settings
+        let watermarkSettings = {
+            sizePercent: 15, // Watermark size as percentage of original image width
+            opacity: 0.3,    // Watermark opacity
+            rotationDeg: -30, // Watermark rotation angle (degrees)
+            gapPercent: 100 // Watermark spacing as percentage of watermark width
+        };
+
+        // Update watermark settings display values
+        function updateWatermarkSettings() {
+            watermarkSettings.sizePercent = parseFloat(watermarkSizeControl.value);
+            watermarkSettings.opacity = parseFloat(watermarkOpacityControl.value);
+            watermarkSettings.rotationDeg = parseFloat(watermarkRotationControl.value);
+            watermarkSettings.gapPercent = parseFloat(watermarkGapControl.value);
+
+            watermarkSizeValueSpan.textContent = watermarkSettings.sizePercent;
+            watermarkOpacityValueSpan.textContent = watermarkSettings.opacity;
+            watermarkRotationValueSpan.textContent = watermarkSettings.rotationDeg;
+            watermarkGapValueSpan.textContent = watermarkSettings.gapPercent;
+
+            // Real-time preview (optional, may cause lag with large images)
+            if (originalImage && watermarkImage) {
+                drawImageOnCanvas();
+            }
+        }
+
+        // Initialize display on load
+        updateWatermarkSettings();
+
+        // Load image when selected
+        imageInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    originalImage = new Image();
+                    originalImage.onload = () => {
+                        drawImageOnCanvas();
+                    };
+                    originalImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Load watermark when selected
+        watermarkInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    watermarkImage = new Image();
+                    watermarkImage.onload = () => {
+                        if (originalImage) {
+                            drawImageOnCanvas();
+                        }
+                    };
+                    watermarkImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Draw image and multiple watermarks on Canvas
+        function drawImageOnCanvas() {
+            if (!originalImage) return;
+
+            imageCanvas.width = originalImage.width;
+            imageCanvas.height = originalImage.height;
+            ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height); // Clear previous drawing
+            ctx.drawImage(originalImage, 0, 0);
+
+            if (watermarkImage) {
+                const { sizePercent, opacity, rotationDeg, gapPercent } = watermarkSettings;
+
+                const rotationRad = rotationDeg * Math.PI / 180; // Convert degrees to radians
+
+                // Calculate actual watermark width and height
+                const watermarkActualWidth = originalImage.width * (sizePercent / 100);
+                const watermarkActualHeight = (watermarkImage.height / watermarkImage.width) * watermarkActualWidth;
+
+                // Calculate watermark step distance (based on watermark width and spacing percentage)
+                const stepX = watermarkActualWidth * (1 + gapPercent / 100) * Math.cos(rotationRad);
+                const stepY = watermarkActualWidth * (1 + gapPercent / 100) * Math.sin(rotationRad);
+
+                // Set watermark opacity
+                ctx.globalAlpha = opacity;
+
+                // Iterate over Canvas area, drawing multiple tilted watermarks
+                for (let y = -imageCanvas.height; y < imageCanvas.height * 2; y += watermarkActualHeight + Math.abs(stepY)) {
+                    for (let x = -imageCanvas.width; x < imageCanvas.width * 2; x += watermarkActualWidth + Math.abs(stepX)) {
+                        ctx.save(); // Save current Canvas state
+
+                        // Move Canvas origin to watermark center for rotation
+                        ctx.translate(x + watermarkActualWidth / 2, y + watermarkActualHeight / 2);
+                        ctx.rotate(rotationRad); // Rotate watermark
+                        ctx.drawImage(watermarkImage, -watermarkActualWidth / 2, -watermarkActualHeight / 2, watermarkActualWidth, watermarkActualHeight);
+
+                        ctx.restore(); // Restore Canvas state to avoid affecting next drawing
+                    }
+                }
+                ctx.globalAlpha = 1.0; // Restore opacity
+            }
+        }
+
+        // Add watermark function
+        function addWatermark() {
+            if (!originalImage) {
+                alert('Please select an image to watermark first!');
+                return;
+            }
+            if (!watermarkImage) {
+                alert('Please select a watermark or logo image first!');
+                return;
+            }
+            drawImageOnCanvas(); // Redraw to ensure watermark is applied
+            alert('Watermark has been added to your image!');
+        }
+
+        // Download watermarked image
+        function downloadImage() {
+            if (!originalImage) {
+                alert('Please select an image to watermark first!');
+                return;
+            }
+            const dataURL = imageCanvas.toDataURL('image/png'); // Or 'image/jpeg', PNG supports transparency
+            const a = document.createElement('a');
+            a.href = dataURL;
+            a.download = 'watermarked_image.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Language switcher function
+        function changeLanguage() {
+            const language = document.getElementById('languageSelect').value;
+            if (language === 'zh') {
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html> 
